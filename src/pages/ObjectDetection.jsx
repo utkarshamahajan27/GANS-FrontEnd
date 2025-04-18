@@ -11,14 +11,17 @@ const ObjectDetection = () => {
     console.log("Running object detection on:", pureBase64);
 
     try {
-      const response = await fetch('http://localhost:8000/object-detection', {
+      const response = await fetch('https://wwqbtk3xb4.execute-api.ap-south-1.amazonaws.com/dev/object-detection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: pureBase64 }),
+        body: JSON.stringify({ image_base64: pureBase64 }),
       });
 
       const data = await response.json();
-      setProcessedImage(data.processedImage); // expecting pure base64 string
+      console.log("Detection result:", data);
+      const parsedBody = JSON.parse(data.body); // 👈 Parse the JSON string inside `body`
+      console.log("Parsed body:", parsedBody);
+      setProcessedImage(parsedBody.processed_image_base64);
     } catch (error) {
       console.error("Detection error:", error);
     }
