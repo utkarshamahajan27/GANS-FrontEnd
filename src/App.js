@@ -1,25 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+// import React from 'react';
+// import Navbar from './components/Navbar';
+// import ImageUploader from './components/ImageUploader';
 
-function App() {
+// function App() {
+//   return (
+//     <div className="App">
+//       <Navbar />
+//       <ImageUploader />
+//     </div>
+//   );
+// }
+
+// export default App;
+
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ObjectDetection from './pages/ObjectDetection';
+import ImageEnhancement from './pages/ImageEnhancement';
+import Navbar from './components/Navbar';
+
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<ImageEnhancement />} />
+        <Route path="/enhancement" element={<ImageEnhancement />} />
+        <Route path="/detection" element={<ObjectDetection />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
