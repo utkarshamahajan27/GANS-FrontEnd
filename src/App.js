@@ -17,6 +17,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ObjectDetection from './pages/ObjectDetection';
 import ImageEnhancement from './pages/ImageEnhancement';
+import About from './pages/About';
+import ProjectDetails from './pages/ProjectDetails';
+import LiteratureSurvey from './pages/LiteratureSurvey';
 import Navbar from './components/Navbar';
 
 const App = () => {
@@ -24,9 +27,11 @@ const App = () => {
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<ImageEnhancement />} />
+        <Route path="/" element={<About />} />
+        <Route path="/project" element={<ProjectDetails />} />
         <Route path="/enhancement" element={<ImageEnhancement />} />
         <Route path="/detection" element={<ObjectDetection />} />
+        <Route path="/literature" element={<LiteratureSurvey />} />
       </Routes>
     </Router>
   );
