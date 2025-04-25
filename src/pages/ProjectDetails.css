@@ -99,3 +99,9 @@
 .comparison-card li:last-child {
   border-bottom: none;
 } 
+
+.abstract .section-header,
+.objectives .section-header,
+.proposed-system .section-header {
+  color:  #333 !important; 
+}

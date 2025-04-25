@@ -4,7 +4,7 @@ import './ProjectDetails.css';
 const ProjectDetails = () => {
   return (
     <div className="project-container">
-      <h1>Project Details</h1>
+      <h1 style={{ color: 'white' }}>Project Details</h1>
 
       <section className="abstract">
         <h2 className="section-header">Abstract</h2>

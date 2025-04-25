@@ -4,8 +4,6 @@ import './About.css';
 const About = () => {
   return (
     <div className="about-container">
-      <h1>Enhanced Object Detection in Satellite Imagery Using GAN-Based Super-Resolution and Synthetic Data Generation</h1>
-      
       <section className="project-objective">
         <h2>Project Objective</h2>
         <p>

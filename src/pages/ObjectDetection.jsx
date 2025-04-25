@@ -44,7 +44,7 @@ const ObjectDetection = () => {
         textAlign: 'center',
       }}
     >
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: 'white' }}>
         Object Detection
       </h1>
 
