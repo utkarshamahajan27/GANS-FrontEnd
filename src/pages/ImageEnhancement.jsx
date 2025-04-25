@@ -10,16 +10,21 @@ const ImageEnhancement = () => {
     const pureBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
     console.log("Sending base64 to SRGAN:", pureBase64);
 
-    
     try {
-      const response = await fetch('http://localhost:8000/srgan', {
+      const response = await fetch('https://wwqbtk3xb4.execute-api.ap-south-1.amazonaws.com/dev/srgan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: pureBase64 }),
       });
 
       const data = await response.json();
-      setProcessedImage(data.processedImage); // expects base64 string from backend
+      console.log("SRGAN response:", data);
+      
+      // Parse the body if it's a string
+      const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+      
+      // Set the processed image from the response
+      setProcessedImage(parsedBody.processed_image);
     } catch (error) {
       console.error("SRGAN error:", error);
     }

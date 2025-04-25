@@ -4,7 +4,6 @@ import './ImageUploader.css';
 const ImageUploader = ({ actionButtons }) => {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
-    const [base64, setBase64] = useState(null);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -15,11 +14,9 @@ const ImageUploader = ({ actionButtons }) => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreview(reader.result);
-                setBase64(reader.result); //saves base64 string for backend use
             };
-            reader.readAsDataURL(file); //this line converts file to Base64
+            reader.readAsDataURL(file);
         }
-
     };
 
     return (
@@ -44,10 +41,9 @@ const ImageUploader = ({ actionButtons }) => {
 
             {preview && actionButtons && (
                 <div className="button-group">
-                    {actionButtons(image, base64)}
+                    {actionButtons(preview, image)} 
                 </div>
             )}
-
         </div>
     );
 };
