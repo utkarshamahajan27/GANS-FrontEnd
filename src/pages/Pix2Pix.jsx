@@ -3,7 +3,7 @@ import ImageUploader from '../components/ImageUploader';
 import CustomButton from '../components/CustomButton';
 import ProcessedS3Image from '../components/ProcessedS3Image';
 
-// const ImageEnhancement = () => {
+// const Pix2Pix = () => {
 //   // Demo states
 //   const [showEnhancedImage, setShowEnhancedImage] = useState(false);
 //   const [showDetectionResults, setShowDetectionResults] = useState(false);
@@ -12,7 +12,7 @@ import ProcessedS3Image from '../components/ProcessedS3Image';
 //   const [detectionCount, setDetectionCount] = useState(0);
 
 //   // Demo handlers
-//   const handleSRGANDemo = () => {
+//   const handlePix2PixDemo = () => {
 //     setIsProcessing(true);
 //     setTimeout(() => {
 //       setShowEnhancedImage(true);
@@ -31,7 +31,7 @@ import ProcessedS3Image from '../components/ProcessedS3Image';
 //   };
 
 //   const handleOpenInNewTabDemo = () => {
-//     window.open('https://picsum.photos/800/600?grayscale', '_blank');
+//     window.open('https://picsum.photos/800/600?sepia', '_blank');
 //   };
 
 //   const handleOpenDetectionInNewTab = () => {
@@ -40,7 +40,7 @@ import ProcessedS3Image from '../components/ProcessedS3Image';
 
 //   return (
 //     <div
-//       className="srgan-page"
+//       className="pix2pix-page"
 //       style={{
 //         display: 'flex',
 //         flexDirection: 'column',
@@ -50,15 +50,15 @@ import ProcessedS3Image from '../components/ProcessedS3Image';
 //       }}
 //     >
 //       <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: 'white' }}>
-//         SRGAN Image Enhancement
+//         Pix2Pix Image Enhancement
 //       </h1>
 
 //       <ImageUploader
 //         actionButtons={(image, base64) => (
 //           <CustomButton 
-//             text={isProcessing ? "Processing..." : "Run SRGAN"} 
-//             onClick={handleSRGANDemo} 
-//             type="srgan" 
+//             text={isProcessing ? "Processing..." : "Run Pix2Pix"} 
+//             onClick={handlePix2PixDemo} 
+//             type="pix2pix" 
 //             disabled={isProcessing}
 //           />
 //         )}
@@ -67,10 +67,10 @@ import ProcessedS3Image from '../components/ProcessedS3Image';
 //       {/* Enhanced Image */}
 //       {showEnhancedImage && (
 //         <div style={{ marginTop: '2rem', width: '100%', maxWidth: '500px' }}>
-//           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>SRGAN Enhanced Image</h2>
+//           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>Pix2Pix Enhanced Image</h2>
 //           <img
-//             src="https://picsum.photos/500/300?grayscale"
-//             alt="SRGAN Enhanced"
+//             src="https://picsum.photos/500/300?sepia"
+//             alt="Pix2Pix Enhanced"
 //             style={{
 //               width: '100%',
 //               border: '1px solid #ccc',
@@ -140,7 +140,7 @@ import ProcessedS3Image from '../components/ProcessedS3Image';
 // };
 
 /* Original Code - Commented Out*/
-const ImageEnhancement = () => {
+const Pix2Pix = () => {
   const [processedImageUrl, setProcessedImageUrl] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDetectionProcessing, setIsDetectionProcessing] = useState(false);
@@ -151,24 +151,26 @@ const ImageEnhancement = () => {
   const [showDummyDetection, setShowDummyDetection] = useState(false);
 
   // Dummy handlers
-  const handleDummySRGAN = async (base64) => {
+  const handleDummyPix2Pix = async (image) => {
     setIsProcessing(true);
     
     try {
       // Make actual API call
-      const pureBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
-      const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/srgan', {
+      const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/pix2pix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: pureBase64 }),
+        body: JSON.stringify({ s3_uri: image.name }),
       });
 
       const data = await response.json();
-      console.log("SRGAN response:", data);
-      const fullS3Uri = `s3://final-year-proj/srgan-prediction.png`;
-      setS3Uri(fullS3Uri);
+      console.log("Pix2Pix response:", data);
+      
+      if (data.zucc) {
+        const fullS3Uri = `s3://final-year-proj/${data.zucc}`;
+        setS3Uri(fullS3Uri);
+      }
     } catch (error) {
-      console.error("SRGAN error:", error);
+      console.error("Pix2Pix error:", error);
     }
 
     // Show dummy image after API call
@@ -205,33 +207,20 @@ const ImageEnhancement = () => {
     }, 1500);
   };
 
-  const handleSRGAN = async (base64) => {
-    const pureBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
-    console.log("Sending base64 to SRGAN:", pureBase64);
-    setIsProcessing(true);
+  const handleDownload = () => {
+    if (!processedImageUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = processedImageUrl;
+    link.download = 'enhanced-image.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
-    try {
-      const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/srgan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: pureBase64 }),
-      });
-
-      const data = await response.json();
-      console.log("SRGAN response:", data);
-      
-      if (data.zucc) {
-        const fullS3Uri = `s3://final-year-proj/srgan-prediction.png`;
-        setS3Uri(fullS3Uri);
-      }
-      // const parsedBody = JSON.parse(data.body);
-      // setProcessedImageUrl(parsedBody.presigned_url);
-      // setDetectionResults(null);
-    } catch (error) {
-      console.error("SRGAN error:", error);
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleOpenInNewTab = () => {
+    if (!processedImageUrl) return;
+    window.open(processedImageUrl, '_blank');
   };
 
   const handleObjectDetection = async () => {
@@ -243,6 +232,7 @@ const ImageEnhancement = () => {
       const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/object-detection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        //body: JSON.stringify({ s3_uri: "s3://final-year-proj/pix2pix-results/srgan-prediction.png" }),
         body: JSON.stringify({ s3_uri: s3Uri }),
       });
 
@@ -260,30 +250,38 @@ const ImageEnhancement = () => {
     }
   };
 
-  const handleDownload = () => {
-    if (!processedImageUrl) return;
-    
-    const link = document.createElement('a');
-    link.href = processedImageUrl;
-    link.download = 'enhanced-image.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleOpenInNewTab = () => {
-    if (!processedImageUrl) return;
-    window.open(processedImageUrl, '_blank');
-  };
-
   const handleOpenDetectionInNewTab = () => {
     if (!processedImageUrl) return;
     window.open(processedImageUrl, '_blank');
   };
 
+  const handlePix2Pix = async (image) => {
+    setIsProcessing(true);
+
+    try {
+      const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/pix2pix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ s3_uri: image.name }),
+      });
+
+      const data = await response.json();
+      console.log("Pix2Pix response:", data);
+      
+      if (data.zucc) {
+        const fullS3Uri = `s3://final-year-proj/${data.zucc}`;
+        setS3Uri(fullS3Uri);
+      }
+    } catch (error) {
+      console.error("Pix2Pix error:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div
-      className="image-enhancement-page"
+      className="pix2pix-page"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -293,15 +291,15 @@ const ImageEnhancement = () => {
       }}
     >
       <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: 'white' }}>
-        Image Enhancement
+        Pix2Pix Image Enhancement
       </h1>
 
       <ImageUploader
         actionButtons={(image, base64) => (
           <CustomButton 
-            text={isProcessing ? "Processing..." : "Run SRGAN"} 
-            onClick={() => handleDummySRGAN(base64)} 
-            type="srgan" 
+            text={isProcessing ? "Processing..." : "Run Pix2Pix"} 
+            onClick={() => handleDummyPix2Pix(image)} 
+            type="pix2pix" 
             disabled={isProcessing}
           />
         )}
@@ -310,10 +308,10 @@ const ImageEnhancement = () => {
       {/* Dummy Enhanced Image */}
       {showDummyImage && (
         <div style={{ marginTop: '2rem', width: '100%', maxWidth: '500px' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>SRGAN Enhanced Image</h2>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>Pix2Pix Enhanced Image</h2>
           <img
             src={`https://picsum.photos/500/300?random=${Math.random()}`}
-            alt="SRGAN Enhanced"
+            alt="Pix2Pix Enhanced"
             style={{
               width: '100%',
               border: '1px solid #ccc',
@@ -423,4 +421,4 @@ const ImageEnhancement = () => {
   );
 };
 
-export default ImageEnhancement;
+export default Pix2Pix; 

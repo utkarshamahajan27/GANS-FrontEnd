@@ -15,12 +15,13 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import About from './pages/About';
 import ObjectDetection from './pages/ObjectDetection';
 import ImageEnhancement from './pages/ImageEnhancement';
-import About from './pages/About';
+import Pix2Pix from './pages/Pix2Pix';
+import Navbar from './components/Navbar';
 import ProjectDetails from './pages/ProjectDetails';
 import LiteratureSurvey from './pages/LiteratureSurvey';
-import Navbar from './components/Navbar';
 import HeaderStars from './components/HeaderStars';
 import './App.css';
 
@@ -32,15 +33,17 @@ const App = () => {
           <HeaderStars />
           <h1>GAN-Powered Satellite Detection with Super-Resolution and Data Augmentation</h1>
         </header>
-      <Navbar />
+        <Navbar />
         <div className="main-content">
-      <Routes>
-        <Route path="/" element={<About />} />
-        <Route path="/project" element={<ProjectDetails />} />
-        <Route path="/enhancement" element={<ImageEnhancement />} />
-        <Route path="/detection" element={<ObjectDetection />} />
-        <Route path="/literature" element={<LiteratureSurvey />} />
-      </Routes>
+          <Routes>
+            <Route path="/" element={<About />} />
+            <Route path="/object-detection" element={<ObjectDetection />} />
+            <Route path="/srgan" element={<ImageEnhancement />} />
+            <Route path="/pix2pix" element={<Pix2Pix />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/project" element={<ProjectDetails />} />
+            <Route path="/literature" element={<LiteratureSurvey />} />
+          </Routes>
         </div>
       </div>
     </Router>
