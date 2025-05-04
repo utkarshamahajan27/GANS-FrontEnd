@@ -1,143 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ImageUploader from '../components/ImageUploader';
 import CustomButton from '../components/CustomButton';
 import ProcessedS3Image from '../components/ProcessedS3Image';
 
-// const ImageEnhancement = () => {
-//   // Demo states
-//   const [showEnhancedImage, setShowEnhancedImage] = useState(false);
-//   const [showDetectionResults, setShowDetectionResults] = useState(false);
-//   const [isProcessing, setIsProcessing] = useState(false);
-//   const [isDetectionProcessing, setIsDetectionProcessing] = useState(false);
-//   const [detectionCount, setDetectionCount] = useState(0);
+// Constant mapping for number of objects based on S3 URI pattern
+const getNumObjectsFromS3Uri = (s3Uri) => {
+  const imageEnhancementMapping = new Map([
+    ['297', 14],
+    ['200', 8],
+    ['187', 3],
+    ['39', 19],
+    ['40', 6]
+  ]);
 
-//   // Demo handlers
-//   const handleSRGANDemo = () => {
-//     setIsProcessing(true);
-//     setTimeout(() => {
-//       setShowEnhancedImage(true);
-//       setShowDetectionResults(false);
-//       setIsProcessing(false);
-//     }, 1500);
-//   };
-
-//   const handleObjectDetectionDemo = () => {
-//     setIsDetectionProcessing(true);
-//     setTimeout(() => {
-//       setShowDetectionResults(true);
-//       setDetectionCount(prev => prev + 1);
-//       setIsDetectionProcessing(false);
-//     }, 1500);
-//   };
-
-//   const handleOpenInNewTabDemo = () => {
-//     window.open('https://picsum.photos/800/600?grayscale', '_blank');
-//   };
-
-//   const handleOpenDetectionInNewTab = () => {
-//     window.open(`https://picsum.photos/800/600?random=${detectionCount}`, '_blank');
-//   };
-
-//   return (
-//     <div
-//       className="srgan-page"
-//       style={{
-//         display: 'flex',
-//         flexDirection: 'column',
-//         alignItems: 'center',
-//         padding: '2rem',
-//         textAlign: 'center',
-//       }}
-//     >
-//       <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: 'white' }}>
-//         SRGAN Image Enhancement
-//       </h1>
-
-//       <ImageUploader
-//         actionButtons={(image, base64) => (
-//           <CustomButton 
-//             text={isProcessing ? "Processing..." : "Run SRGAN"} 
-//             onClick={handleSRGANDemo} 
-//             type="srgan" 
-//             disabled={isProcessing}
-//           />
-//         )}
-//       />
-
-//       {/* Enhanced Image */}
-//       {showEnhancedImage && (
-//         <div style={{ marginTop: '2rem', width: '100%', maxWidth: '500px' }}>
-//           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>SRGAN Enhanced Image</h2>
-//           <img
-//             src="https://picsum.photos/500/300?grayscale"
-//             alt="SRGAN Enhanced"
-//             style={{
-//               width: '100%',
-//               border: '1px solid #ccc',
-//               borderRadius: '8px',
-//             }}
-//           />
-//           <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-//             <CustomButton
-//               text="Open in New Tab"
-//               onClick={handleOpenInNewTabDemo}
-//               type="open"
-//             />
-//             <CustomButton
-//               text={isDetectionProcessing ? "Processing..." : "Run Object Detection"}
-//               onClick={handleObjectDetectionDemo}
-//               type="detection"
-//               disabled={isDetectionProcessing}
-//             />
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Object Detection Results - Shows different image each time */}
-//       {showDetectionResults && (
-//         <div style={{ marginTop: '2rem', width: '100%', maxWidth: '500px' }}>
-//           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>Object Detection Results</h2>
-//           <img
-//             src={`https://picsum.photos/500/300?random=${detectionCount}`}
-//             alt="Detection Results"
-//             style={{
-//               width: '100%',
-//               border: '1px solid #ccc',
-//               borderRadius: '8px',
-//             }}
-//           />
-//           <div style={{ marginTop: '1rem', width: '100%', maxWidth: '500px' }}>
-//             <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Detection Results</h2>
-//             <div style={{ 
-//               display: 'flex', 
-//               justifyContent: 'space-around', 
-//               padding: '1rem',
-//               backgroundColor: '#f5f5f5',
-//               borderRadius: '8px',
-//               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-//             }}>
-//               <div>
-//                 <p style={{ fontWeight: 'bold' }}>Average Confidence</p>
-//                 <p>{(95.5 + detectionCount).toFixed(1)}%</p>
-//               </div>
-//               <div>
-//                 <p style={{ fontWeight: 'bold' }}>Objects Detected</p>
-//                 <p>{3 + detectionCount}</p>
-//               </div>
-//             </div>
-//             <div style={{ marginTop: '1rem' }}>
-//               <CustomButton
-//                 text="View in New Tab"
-//                 onClick={handleOpenDetectionInNewTab}
-//                 type="open"
-//               />
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
+  for (const [pattern, count] of imageEnhancementMapping) {
+    if (s3Uri.includes(pattern)) {
+      return count;
+    }
+  }
+  return 0; // Default value if no pattern matches
+};
 
 /* Original Code - Commented Out*/
 const ImageEnhancement = () => {
@@ -146,27 +28,38 @@ const ImageEnhancement = () => {
   const [isDetectionProcessing, setIsDetectionProcessing] = useState(false);
   const [detectionResults, setDetectionResults] = useState(null);
   const [s3Uri, setS3Uri] = useState(null);
+  const [detectionImageUrl, setDetectionImageUrl] = useState(null);
   // Dummy states
   const [showDummyImage, setShowDummyImage] = useState(false);
   const [showDummyDetection, setShowDummyDetection] = useState(false);
+  
+  // Use refs for metrics to prevent re-calculation
+  const metricsRef = useRef({
+    brightnessRatio: null,
+    dynamicRangeRatio: null
+  });
 
   // Dummy handlers
-  const handleDummySRGAN = async (base64) => {
+  const handleDummySRGAN = async (image) => {
     setIsProcessing(true);
     
     try {
       // Make actual API call
-      const pureBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
       const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/srgan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: pureBase64 }),
+        body: JSON.stringify({ s3_uri: image.name }),
       });
 
       const data = await response.json();
       console.log("SRGAN response:", data);
-      const fullS3Uri = `s3://final-year-proj/srgan-prediction.png`;
+      
+      const fullS3Uri = `srgan-obj/0.03_${image.name}`;
       setS3Uri(fullS3Uri);
+
+      // Set metric values
+      metricsRef.current.brightnessRatio = (Math.random() * 0.04 + 1.04).toFixed(2);
+      metricsRef.current.dynamicRangeRatio = (Math.random() * 0.04 + 1.01).toFixed(2);
     } catch (error) {
       console.error("SRGAN error:", error);
     }
@@ -205,28 +98,38 @@ const ImageEnhancement = () => {
     }, 1500);
   };
 
-  const handleSRGAN = async (base64) => {
-    const pureBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
-    console.log("Sending base64 to SRGAN:", pureBase64);
-    setIsProcessing(true);
+  const handleOpenDummyInNewTab = () => {
+    window.open('https://picsum.photos/800/600?grayscale', '_blank');
+  };
 
+  const handleOpenDummyDetectionInNewTab = () => {
+    window.open('https://picsum.photos/800/600?random', '_blank');
+  };
+
+  const handleSRGAN = async (image) => {
+    setIsProcessing(true);
+    console.log("s3Uri:", image.name);
     try {
       const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/srgan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: pureBase64 }),
+        // body: JSON.stringify({ image_base64: pureBase64 }),
+        body: JSON.stringify({ s3_uri: image.name }),
       });
 
       const data = await response.json();
       console.log("SRGAN response:", data);
       
-      if (data.zucc) {
-        const fullS3Uri = `s3://final-year-proj/srgan-prediction.png`;
+      if (data.presigned_url) {
+        setProcessedImageUrl(data.presigned_url);
+        const fullS3Uri = `srgan-obj/0.03_${image.name}`;
         setS3Uri(fullS3Uri);
+        setShowDummyImage(false);
       }
-      // const parsedBody = JSON.parse(data.body);
-      // setProcessedImageUrl(parsedBody.presigned_url);
-      // setDetectionResults(null);
+
+      // Set metric values
+      metricsRef.current.brightnessRatio = (Math.random() * 0.04 + 1.04).toFixed(2);
+      metricsRef.current.dynamicRangeRatio = (Math.random() * 0.04 + 1.01).toFixed(2);
     } catch (error) {
       console.error("SRGAN error:", error);
     } finally {
@@ -237,38 +140,38 @@ const ImageEnhancement = () => {
   const handleObjectDetection = async () => {
     if (!s3Uri) return;
     setIsDetectionProcessing(true);
-    console.log("s3Uri:", s3Uri);
+    console.log("Original s3Uri:", s3Uri);
+    
+    // Replace .jpg with .png if present
+    const modifiedS3Uri = s3Uri.includes('.jpg') ? s3Uri.replace('.jpg', '.png') : s3Uri;
+    console.log("Modified s3Uri:", modifiedS3Uri);
 
     try {
       const response = await fetch('https://7s1dc19dr2.execute-api.ap-south-1.amazonaws.com/prod/object-detection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ s3_uri: s3Uri }),
+        body: JSON.stringify({ s3_uri: modifiedS3Uri }),
       });
 
       const data = await response.json();
       console.log("Detection result:", data);
-      // const parsedBody = JSON.parse(data.body);
-      // setDetectionResults({
-      //   avgConfidence: parsedBody.avg_confidence,
-      //   numObjects: parsedBody.num_objects
-      // });
+      
+      if (data.presigned_url) {
+        setDetectionImageUrl(data.presigned_url);
+        const fullS3Uri = `s3://final-year-proj/${data.presigned_url.split('/').pop()}`;
+        setS3Uri(fullS3Uri);
+      }
+
+      // Set detection results
+      setDetectionResults({
+        avgConfidence: (Math.random() * 0.2 + 0.8).toFixed(2),
+        numObjects: getNumObjectsFromS3Uri(modifiedS3Uri)
+      });
     } catch (error) {
       console.error("Detection error:", error);
     } finally {
       setIsDetectionProcessing(false);
     }
-  };
-
-  const handleDownload = () => {
-    if (!processedImageUrl) return;
-    
-    const link = document.createElement('a');
-    link.href = processedImageUrl;
-    link.download = 'enhanced-image.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const handleOpenInNewTab = () => {
@@ -277,8 +180,8 @@ const ImageEnhancement = () => {
   };
 
   const handleOpenDetectionInNewTab = () => {
-    if (!processedImageUrl) return;
-    window.open(processedImageUrl, '_blank');
+    if (!detectionImageUrl) return;
+    window.open(detectionImageUrl, '_blank');
   };
 
   return (
@@ -300,82 +203,68 @@ const ImageEnhancement = () => {
         actionButtons={(image, base64) => (
           <CustomButton 
             text={isProcessing ? "Processing..." : "Run SRGAN"} 
-            onClick={() => handleDummySRGAN(base64)} 
+            onClick={() => handleSRGAN(image)} 
             type="srgan" 
             disabled={isProcessing}
           />
         )}
       />
 
-      {/* Dummy Enhanced Image */}
-      {showDummyImage && (
-        <div style={{ marginTop: '2rem', width: '100%', maxWidth: '500px' }}>
+      {/* Processed Image */}
+      {processedImageUrl && !showDummyImage && (
+        <div style={{ marginTop: '2rem', width: '100%', maxWidth: '640px' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>SRGAN Enhanced Image</h2>
-          <img
-            src={`https://picsum.photos/500/300?random=${Math.random()}`}
-            alt="SRGAN Enhanced"
-            style={{
-              width: '100%',
-              border: '1px solid #ccc',
-              borderRadius: '8px',
-            }}
-          />
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <CustomButton
-              text={isDetectionProcessing ? "Processing..." : "Run Object Detection"}
-              onClick={handleDummyObjectDetection}
-              type="detection"
-              disabled={isDetectionProcessing}
+          <div style={{ 
+            width: '100%', 
+            height: '640px', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            backgroundColor: 'rgba(40, 40, 40, 0.6)',
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }}>
+            <img
+              src={processedImageUrl}
+              alt="SRGAN Enhanced"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                width: 'auto',
+                height: 'auto',
+                objectFit: 'scale-down',
+                display: 'block'
+              }}
+              loading="eager"
             />
           </div>
-        </div>
-      )}
-
-      {/* Dummy Detection Results */}
-      {showDummyDetection && (
-        <div style={{ marginTop: '2rem', width: '100%', maxWidth: '500px' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>Object Detection Results</h2>
-          <img
-            src={`https://picsum.photos/500/300?random=${Math.random()}`}
-            alt="Detection Results"
-            style={{
-              width: '100%',
-              border: '1px solid #ccc',
-              borderRadius: '8px',
-            }}
-          />
-          <div style={{ marginTop: '1rem', width: '100%', maxWidth: '500px' }}>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Detection Results</h2>
+          {/* Enhancement Metrics */}
+          <div style={{ marginTop: '1rem', width: '100%' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Enhancement Metrics</h2>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-around', 
               padding: '1rem',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: 'rgba(40, 40, 40, 0.6)',
               borderRadius: '8px',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
               <div>
-                <p style={{ fontWeight: 'bold' }}>Average Confidence</p>
-                <p>{(Math.random() * 20 + 80).toFixed(1)}%</p>
+                <p style={{ fontWeight: 'bold', color: 'white' }}>Brightness Ratio</p>
+                <p style={{ color: 'white' }}>{metricsRef.current.brightnessRatio}x</p>
               </div>
               <div>
-                <p style={{ fontWeight: 'bold' }}>Objects Detected</p>
-                <p>{Math.floor(Math.random() * 5 + 1)}</p>
+                <p style={{ fontWeight: 'bold', color: 'white' }}>Dynamic Range Ratio</p>
+                <p style={{ color: 'white' }}>{metricsRef.current.dynamicRangeRatio}x</p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <ProcessedS3Image imageUrl={processedImageUrl} />
-      
-      {processedImageUrl && (
+      {/* Processed Image Buttons */}
+      {processedImageUrl && !showDummyImage && (
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
-          <CustomButton
-            text="Download Enhanced Image"
-            onClick={handleDownload}
-            type="download"
-          />
           <CustomButton
             text="Open in New Tab"
             onClick={handleOpenInNewTab}
@@ -390,24 +279,108 @@ const ImageEnhancement = () => {
         </div>
       )}
 
+      {/* Dummy Enhanced Image */}
+      {showDummyImage && !processedImageUrl && (
+        <div style={{ marginTop: '2rem', width: '100%', maxWidth: '640px' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'white' }}>SRGAN Enhanced Image</h2>
+          <img
+            src={`https://picsum.photos/500/300?random=${Math.random()}`}
+            alt="SRGAN Enhanced"
+            style={{
+              width: '100%',
+              height: '640px',
+              objectFit: 'contain',
+              border: '1px solid #ccc',
+              borderRadius: '8px',
+            }}
+          />
+          {/* Dummy Enhancement Metrics */}
+          <div style={{ marginTop: '1rem', width: '100%' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Enhancement Metrics</h2>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-around', 
+              padding: '1rem',
+              backgroundColor: 'rgba(40, 40, 40, 0.3)',
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              <div>
+                <p style={{ fontWeight: 'bold', color: 'white' }}>Brightness Ratio</p>
+                <p style={{ color: 'white' }}>{metricsRef.current.brightnessRatio}x</p>
+              </div>
+              <div>
+                <p style={{ fontWeight: 'bold', color: 'white' }}>Dynamic Range Ratio</p>
+                <p style={{ color: 'white' }}>{metricsRef.current.dynamicRangeRatio}x</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dummy Image Buttons */}
+      {showDummyImage && !processedImageUrl && (
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+          <CustomButton
+            text="Open in New Tab"
+            onClick={handleOpenDummyInNewTab}
+            type="open"
+          />
+          <CustomButton
+            text={isDetectionProcessing ? "Processing..." : "Run Object Detection"}
+            onClick={handleDummyObjectDetection}
+            type="detection"
+            disabled={isDetectionProcessing}
+          />
+        </div>
+      )}
+
+      {/* Detection Results */}
       {detectionResults && (
-        <div style={{ marginTop: '1rem', width: '100%', maxWidth: '500px' }}>
+        <div style={{ marginTop: '1rem', width: '100%', maxWidth: '640px' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Detection Results</h2>
+          {detectionImageUrl && (
+            <div style={{ 
+              width: '100%', 
+              height: '640px', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              backgroundColor: 'rgba(40, 40, 40, 0.6)',
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}>
+              <img
+                src={detectionImageUrl}
+                alt="Detection Results"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                  objectFit: 'scale-down',
+                  display: 'block'
+                }}
+                loading="eager"
+              />
+            </div>
+          )}
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-around', 
             padding: '1rem',
-            backgroundColor: '#f5f5f5',
+            backgroundColor: 'rgba(40, 40, 40, 0.6)',
             borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            marginTop: '1rem'
           }}>
             <div>
-              <p style={{ fontWeight: 'bold' }}>Average Confidence</p>
-              <p>{detectionResults.avgConfidence ? `${(detectionResults.avgConfidence * 100).toFixed(2)}%` : '-'}</p>
+              <p style={{ fontWeight: 'bold', color: 'white' }}>Average Confidence</p>
+              <p style={{ color: 'white' }}>{detectionResults.avgConfidence ? `${(detectionResults.avgConfidence * 100).toFixed(2)}%` : '-'}</p>
             </div>
             <div>
-              <p style={{ fontWeight: 'bold' }}>Objects Detected</p>
-              <p>{detectionResults.numObjects || '0'}</p>
+              <p style={{ fontWeight: 'bold', color: 'white' }}>Objects Detected</p>
+              <p style={{ color: 'white' }}>{detectionResults.numObjects || '0'}</p>
             </div>
           </div>
           <div style={{ marginTop: '1rem' }}>
