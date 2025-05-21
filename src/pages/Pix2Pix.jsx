@@ -21,6 +21,60 @@ const Pix2Pix = () => {
     dynamicRangeRatio: null
   });
 
+  const calculateDynamicRangeRatio = (pixels) => {
+    // Initialize min and max luminance with extreme values
+    let minLuminance = Number.MAX_VALUE;
+    let maxLuminance = Number.MIN_VALUE;
+    
+    // Process each pixel
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      
+      // Calculate luminance using the standard formula (Rec. 709)
+      // L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      
+      // Update min and max luminance
+      if (luminance < minLuminance) minLuminance = luminance;
+      if (luminance > maxLuminance) maxLuminance = luminance;
+    }
+    
+    // Avoid division by zero
+    if (minLuminance === 0) minLuminance = 0.001;
+    
+    // Calculate the dynamic range ratio
+    const dynamicRangeRatio = (maxLuminance - minLuminance) / minLuminance;
+    
+    return dynamicRangeRatio;
+  };
+  const calculateBrightnessRatio = (pixels) => {
+    let totalLuminance = 0;
+    const pixelCount = pixels.length / 4; // Each pixel has 4 values (RGBA)
+    
+    // Process each pixel
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      
+      // Calculate luminance using the standard formula (Rec. 709)
+      // L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      
+      totalLuminance += luminance;
+    }
+    
+    // Calculate average luminance
+    const averageLuminance = totalLuminance / pixelCount;
+    
+    // Calculate the brightness ratio (normalized to maximum possible luminance)
+    const brightnessRatio = averageLuminance / 255;
+    
+    return brightnessRatio;
+  };
+
   // Constant mapping for number of objects based on S3 URI pattern
   const getNumObjectsFromS3Uri = (s3Uri) => {
     const pix2pixMapping = new Map([
